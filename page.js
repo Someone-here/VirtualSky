@@ -7,7 +7,8 @@ const controls = document.querySelector("#controls");
 const timeVal = document.querySelector("#timeVal");
 const timeRange = document.querySelector("#timeRange");
 
-el.style.height = `${window.innerHeight - 70}px`;
+el.style.height = `${600 - 70}px`;
+ground.style.bottom = `${window.innerHeight - (el.offsetHeight + el.offsetTop)}px`
 let mouseDown = false;
 let position = null;
 let picOffset = 0;
