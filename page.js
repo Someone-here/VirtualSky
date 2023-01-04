@@ -8,7 +8,6 @@ const timeVal = document.querySelector("#timeVal");
 const timeRange = document.querySelector("#timeRange");
 
 el.style.height = `${600 - 70}px`;
-ground.style.bottom = `${window.innerHeight - (el.offsetHeight + el.offsetTop)}px`
 let mouseDown = false;
 let position = null;
 let picOffset = 0;
@@ -49,12 +48,20 @@ let longitude = planetarium.longitude.deg.toFixed(3);
 let latitude = planetarium.latitude.deg.toFixed(3);
 
 el.addEventListener("mousedown", (e) => {
-    mouseDown = true; position = e.x
+    mouseDown = true; position = e.x;
+    console.log(e.x);
 });
-el.addEventListener("mouseup", (e) => { 
-    mouseDown = false; 
-    picOffset = parseInt(ground.style.translate.slice(0, -2)) 
+
+el.addEventListener("mouseup", () => { 
+    mouseDown = false;
+    picOffset = parseInt(ground.style.translate.slice(0, -2));
 });
+
+el.addEventListener("mouseleave", () => { 
+    mouseDown = false;
+    picOffset = isFinite(parseInt(ground.style.translate.slice(0, -2))) ? parseInt(ground.style.translate.slice(0, -2)) : 0;
+});
+
 el.addEventListener("mousemove", (e) => {
     if (mouseDown) {
         console.log(picOffset);
