@@ -6,6 +6,15 @@ const ground = document.querySelector("#ground");
 const controls = document.querySelector("#controls");
 const timeVal = document.querySelector("#timeVal");
 const timeRange = document.querySelector("#timeRange");
+const eventsURL = "https://pingone.paralelo.eu/wp-json/wp/v2/class";
+let eventData = [];
+let dateMappings = [];
+
+fetch(eventsURL).then(res => res.json()).then(json => {
+    eventData = json; 
+    dateMappings = eventData.map(a => new Date(a.modified_gmt));
+    console.log(dateMappings); 
+});
 
 el.style.height = `${600 - 70}px`;
 let mouseDown = false;
@@ -18,8 +27,6 @@ const adj = (Math.round(ground.clientWidth / window.innerWidth) - 1)
 const planetarium = S.virtualsky({
     id: 'starmap1',
     projection: 'stereo',
-    // ra: 83.8220833,
-    // dec: -5.3911111,
     constellations: true,
     live: false,
 });
@@ -31,18 +38,8 @@ timeRange.addEventListener("input", () => {
     planetarium.calendarUpdate();
     planetarium.draw();
     timeVal.innerHTML = currentDate.toLocaleDateString();
+    console.log(currentDate in dateMappings);
 });
-
-function fullScreenChange() {
-    // if (!document.fullscreenElement) {
-    //     controls.style.zIndex = 9999;
-    //     ground.style.zIndex = 9999;
-    // }
-}
-
-["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"].forEach(
-    eventType => document.addEventListener(eventType, fullScreenChange, false)
-);
 
 let longitude = planetarium.longitude.deg.toFixed(3);
 let latitude = planetarium.latitude.deg.toFixed(3);
