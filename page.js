@@ -10,11 +10,11 @@ const eventsURL = "https://pingone.paralelo.eu/wp-json/wp/v2/class";
 let eventData = [];
 let dateMappings = [];
 
-fetch(eventsURL).then(res => res.json()).then(json => {
-    eventData = json; 
-    dateMappings = eventData.map(a => new Date(a.modified_gmt));
-    console.log(dateMappings); 
-});
+function ready() {
+    controls.style.translate = `0px -${ground.clientHeight}px`;
+}
+
+document.addEventListener("DOMContentLoaded", ready);
 
 el.style.height = `${600 - 70}px`;
 let mouseDown = false;
@@ -49,6 +49,28 @@ el.addEventListener("mousedown", (e) => {
     console.log(e.x);
 });
 
+el.addEventListener("touchstart", (e) => {
+    mouseDown = true; position = e.touches[0].pageX;
+});
+
+el.addEventListener("touchmove", (e) => {
+    if (mouseDown) {
+        ground.style.translate =  `${picOffset + (e.targetTouches[0].pageX - position)}px`;
+        if (parseInt(ground.style.translate.slice(0, -2)) > 0) {
+            ground.style.translate = "0px";
+            planetarium.mouse = false;
+        } else if (parseInt(ground.style.translate.slice(0, -2)) < -(ground.clientWidth * adj)) {
+            ground.style.translate = `${-ground.clientWidth * adj}px`;
+            planetarium.mouse = false;
+        } else planetarium.mouse = true;
+    }
+});
+
+el.addEventListener("touchend", () => { 
+    mouseDown = false;
+    picOffset = parseInt(ground.style.translate.slice(0, -2));
+});
+
 el.addEventListener("mouseup", () => { 
     mouseDown = false;
     picOffset = parseInt(ground.style.translate.slice(0, -2));
@@ -61,9 +83,7 @@ el.addEventListener("mouseleave", () => {
 
 el.addEventListener("mousemove", (e) => {
     if (mouseDown) {
-        console.log(picOffset);
         ground.style.translate =  `${picOffset + (e.x - position)}px`;
-        console.log("T", ground.style.translate);
         if (parseInt(ground.style.translate.slice(0, -2)) > 0) {
             ground.style.translate = "0px";
             planetarium.mouse = false;
