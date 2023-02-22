@@ -24,8 +24,8 @@ async function getEventData() {
 getEventData().then(ev => { 
     eventsData = ev;
     eventsData = eventsData.map(a => ({ ...a, date: new Date(a.meta.datevs) }));
-    console.log(eventsData);
     dateMappings = eventsData.map(a => a.date.toDateString());
+    document.dispatchEvent(new Event("EventsLoaded"));
 });
 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -76,6 +76,37 @@ const planetarium = S.virtualsky({
     projection: 'stereo',
     constellations: true,
     live: false,
+});
+
+document.addEventListener('EventsLoaded', () => {
+    console.log(dateMappings, (new Date()).toDateString());
+    if (dateMappings.includes((new Date()).toDateString())) {
+        eventsContainer.style.display = "flex";
+        const filteredEvents = eventsData.filter(ev => ev.date.toDateString() == (new Date()).toDateString());
+        if (filteredEvents.length > 1) carouselControls.style.display = "flex";
+        const eventElements = filteredEvents.map((event, idx) => {
+            return `
+                <div class="eventContainer" data-index="${idx}" style="display: ${idx == 0 ? 'block' : 'none'};">
+                    <div class="top-card">
+                        <p>${event.date.getDate()}<sup style="font-size: 1.5rem">th</sup> ${months[event.date.getMonth()]}</p>
+                        <p style="font-size: 1.75rem; font-weight: 500" >${event.date.getFullYear()}</p>
+                    </div>
+                    <div class="bottom-card">
+                        <p class="eventTitle">${event.title.rendered}</p>
+                        <div class="eventDescription">${truncateString(event.content.rendered, 100)}</div>
+                        <a class="eventLink" href="${event.link}" >Go to Event</a>
+                    </div>
+                </div>
+            `;
+        }).reduce((p, c) => p + c);
+        
+        eventsContainer.innerHTML = eventElements;
+        eventsContainer.dataset.active = 0;
+    } else {
+        eventsContainer.style.display = "none";
+        carouselControls.style.display = "none";
+        eventsContainer.innerHTML = "";
+    }
 });
 
 timeRange.addEventListener("input", () => {
