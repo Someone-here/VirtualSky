@@ -8,7 +8,6 @@
     <title>Virtual Sky</title>
     <script src="stuquery.min.js"></script>
     <script src="virtualsky.js" type="text/javascript"></script>
-    <script defer src="page.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -21,6 +20,9 @@
             gap: 5px;
             font-family: 'Courier New', Courier, monospace;
             background: black;
+            position: absolute;
+            top: 530px;
+            width: 100%;
         }
 
         .control-box {
@@ -88,42 +90,184 @@
 
         #ground {
             max-height: 20rem;
-            width: 200vw;
+            width: 300vw;
+            min-width: 300vw;
             pointer-events: none;
             user-select: none;
             aspect-ratio: auto;
+            z-index: 99;
+            transform: translateY(-100%);
+        }
+        #event {
+            border-radius: 18px;
             position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -90%);
             z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 1s ease-in-out;
+            overflow-x: scroll;
+        }
+        .eventContainer {
+            aspect-ratio: 11/13;
+            height: 42vmin;
+            position: relative;
+        }
+        .top-card {
+            height: 30%;
+            width: 100%;
+            background: linear-gradient(to left, #323B40, #202528);
+            color: #ffe;
+            font-family: 'PT serif';
+            display: flex;
+            align-items: center;
+            text-align: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 600;
+            flex-direction: column;
+        }
+        .bottom-card {
+            height: 70%;
+            width: 100%;
+            background: linear-gradient(to left, #FAEFE4, #FAEFE4EE);
+            padding: 18px;
+        }
+        .date {
+            width: 80px;
+            aspect-ratio: 1;
+            background-color: #77ec;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4rem;
+            font-family: monospace;
+            color: #fff;
+            margin-bottom: 0.6rem;
+        }
+        .eventTitle {
+            font-family: 'PT Sans';
+            text-transform: uppercase;
+            font-weight: 600;
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+        }
+
+        #carouselControls {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -90%);
+            height: 45vmin;
+            aspect-ratio: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #left, #right {
+            border-radius: 8px;
+            padding: 8px;
+            background: #ffee;
+            aspect-ratio: 1;
+            font-family: 'PT Sans';
+            font-weight: 900;
+            font-size: 1.5rem;
+        }
+
+        .eventLink {
+            bottom: 30px;
+            padding: 8px;
+            background: linear-gradient(to left, #323B40, #202528);
+            color: #ffe;
+            font-size: 1.2rem;
+            text-decoration: none;
+            font-family: 'PT Sans';
+            border-radius: 8px;
+            position: absolute;
+            display: inline-block;
+        }
+
+        .eventDescription p {
+            font-family: 'PT Sans';
+            color: #515151;
+            font-size: 1.1rem;
+        }
+        @media screen and (max-width: 900px) {
+            #event {
+                transform: translate(-50%, -70%);
+            }
+            #carouselControls {
+                transform: translate(-50%, -70%);
+            }
+        }
+        @media screen and (max-width: 500px) {
+            #ground {
+                width: 400vw;
+            }
+            #event {
+                transform: translate(-50%, -60%);
+            }
+            .eventContainer {
+                width: 70vw;
+                height: auto;
+            }
+            .eventLink {
+                bottom: 20px;
+                font-size: 1rem;
+            }
+            #carouselControls {
+                transform: translate(-50%, -60%);
+                width: 94vw;
+                height: auto;
+            }
+        }
+        @media screen and (max-width: 780px) and (min-width: 500px) {
+            #ground {
+                width: 300vw;
+            }
         }
     </style>
 </head>
 
 <body style="margin: 0px; overflow-x: hidden;">
-    <div>
-        <div id="starmap1" style="width:100%;"></div>
-        <img id="ground" src="assets/verona.png" />
-    </div>
-    <div class="controls" id="controls">
-        <div class="control-box">
-            <h4>Logitude & Latitude</h4>
-            <div class="inputs">
-                <div>
-                    <input name="latitude" id="latitude" type="number" class="locationInput" />
-                    <label for="longitude">East</label>
-                </div>
-                <div>
-                    <input name="longitude" id="longitude" type="number" class="locationInput" />
-                    <label for="latitude">North</label>
+    <main style="position: relative">
+        <div style="width:100%; overflow-x: hidden; position: relative;">
+            <div id="starmap1" style="width:100%; height: 530px; "></div>
+            <img id="ground" src="assets/torino.svg" />
+            <div id="event" data-active="0" style="display: none;" >
+            </div>
+            <div id="carouselControls" style="display: none;">
+                <button id="left">&lt;</button>
+                <button id="right">&gt;</button>
+            </div>
+        </div>
+        <div class="controls" id="controls">
+            <div class="control-box">
+                <h4>Logitude & Latitude</h4>
+                <div class="inputs">
+                    <div>
+                        <input name="latitude" id="latitude" type="number" class="locationInput" />
+                        <label for="longitude">East</label>
+                    </div>
+                    <div>
+                        <input name="longitude" id="longitude" type="number" class="locationInput" />
+                        <label for="latitude">North</label>
+                    </div>
                 </div>
             </div>
-            <!-- <input name="place" id="place" class="locationInput" style="width: 80%" /> -->
+            <div class="control-box">
+                <h4>Time</h4>
+                <input type="range" min="-15" max="15" value="0" class="slider" id="timeRange" />
+                <h4>Value: <span id="timeVal">0</span></h4>
+            </div>
         </div>
-        <div class="control-box">
-            <h4>Time</h4>
-            <input type="range" min="-15" max="15" value="0" class="slider" id="timeRange" />
-            <h4>Value: <span id="timeVal">0</span></h4>
-        </div>
-        </div>
-    </div>
+    </main>
+    <script defer src="page.js"></script>
 </body>
 </html>

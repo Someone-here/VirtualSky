@@ -6,17 +6,64 @@ const ground = document.querySelector("#ground");
 const controls = document.querySelector("#controls");
 const timeVal = document.querySelector("#timeVal");
 const timeRange = document.querySelector("#timeRange");
+const eventsContainer = document.querySelector("#event");
 const eventsURL = "https://pingone.paralelo.eu/wp-json/wp/v2/class";
-let eventData = [];
+const carouselControls = document.querySelector("#carouselControls")
+const leftBtn = document.querySelector("#left");
+const rightBtn = document.querySelector("#right");
+
+
+let eventsData = [];
 let dateMappings = [];
 
-function ready() {
-    controls.style.translate = `0px -${ground.clientHeight}px`;
+async function getEventData() {
+    const res = await fetch("https://pingone.paralelo.eu/wp-json/wp/v2/class");
+    return await res.json();
 }
 
-document.addEventListener("DOMContentLoaded", ready);
+getEventData().then(ev => { 
+    eventsData = ev;
+    eventsData = eventsData.map(a => ({ ...a, date: new Date(a.meta.datevs) }));
+    console.log(eventsData);
+    dateMappings = eventsData.map(a => a.date.toDateString());
+});
 
-el.style.height = `${600 - 70}px`;
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+
+function changeActive(oldIdx) {
+    document.querySelectorAll(".eventContainer").forEach((val) => {
+        if (val.dataset.index == eventsContainer.dataset.active) {
+            val.style.display = "block";
+        }
+        if (val.dataset.index == oldIdx) {
+            val.style.display = "none";
+            console.log(oldIdx)
+        }
+    })
+}
+
+const truncateString = (string = '', maxLength = 50) => 
+  string.length > maxLength 
+    ? `${string.substring(0, maxLength)}…`
+    : string
+
+leftBtn.addEventListener('click', (event) => {
+    const activeEl = parseInt(eventsContainer.dataset.active);
+    if (activeEl != 0) {
+        eventsContainer.dataset.active = activeEl - 1;
+        changeActive(activeEl);
+    }
+})
+
+rightBtn.addEventListener('click', (event) => {
+    const activeEl = parseInt(eventsContainer.dataset.active);
+    if (activeEl != document.querySelectorAll(".eventContainer").length - 1) {
+        eventsContainer.dataset.active = activeEl + 1;
+        changeActive(activeEl)
+    }
+})
+
 let mouseDown = false;
 let position = null;
 let picOffset = 0;
@@ -38,7 +85,33 @@ timeRange.addEventListener("input", () => {
     planetarium.calendarUpdate();
     planetarium.draw();
     timeVal.innerHTML = currentDate.toLocaleDateString();
-    console.log(currentDate in dateMappings);
+    if (dateMappings.includes(currentDate.toDateString())) {
+        eventsContainer.style.display = "flex";
+        const filteredEvents = eventsData.filter(ev => ev.date.toDateString() == currentDate.toDateString());
+        if (filteredEvents.length > 1) carouselControls.style.display = "flex";
+        const eventElements = filteredEvents.map((event, idx) => {
+            return `
+                <div class="eventContainer" data-index="${idx}" style="display: ${idx == 0 ? 'block' : 'none'};">
+                    <div class="top-card">
+                        <p>${event.date.getDate()}<sup style="font-size: 1.5rem">th</sup> ${months[event.date.getMonth()]}</p>
+                        <p style="font-size: 1.75rem; font-weight: 500" >${event.date.getFullYear()}</p>
+                    </div>
+                    <div class="bottom-card">
+                        <p class="eventTitle">${event.title.rendered}</p>
+                        <div class="eventDescription">${truncateString(event.content.rendered, 100)}</div>
+                        <a class="eventLink" href="${event.link}" >Go to Event</a>
+                    </div>
+                </div>
+            `;
+        }).reduce((p, c) => p + c);
+        
+        eventsContainer.innerHTML = eventElements;
+        eventsContainer.dataset.active = 0;
+    } else {
+        eventsContainer.style.display = "none";
+        carouselControls.style.display = "none";
+        eventsContainer.innerHTML = "";
+    }
 });
 
 let longitude = planetarium.longitude.deg.toFixed(3);
